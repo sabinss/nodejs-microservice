@@ -1,8 +1,10 @@
 const ProductService = require("../services/product-service")
 const UserAuth = require("./middlewares/auth")
-const { PublishCustomerEvent, PublishShoppingEvent } = require("../utils")
+const { PublishMessage } = require("../utils")
+const { CUSTOMER_SERVICE, SHOPPING_SERVICE } = require("../config")
+// const { PublishCustomerEvent, PublishShoppingEvent } = require("../utils")
 
-module.exports = (app) => {
+module.exports = (app, channel) => {
   const service = new ProductService()
   // const customerService = new CustomerService();
 
@@ -59,8 +61,8 @@ module.exports = (app) => {
     }
   })
 
-  app.put("/wishlist", UserAuth, async (req, res, next) => {
-    const { _id } = req.user
+  app.put("/wishlist", async (req, res, next) => {
+    const { _id } = req.user || "63bd2519e16f264e029e5f70"
     //get payload to send cutomer service
     try {
       // const product = await service.GetProductById(req.body._id)
@@ -70,7 +72,23 @@ module.exports = (app) => {
         { productId: req.body._id },
         "ADD_TO_WISHLIST"
       )
-      PublishCustomerEvent(data)
+      // PublishCustomerEvent(data)
+      PublishMessage(
+        channel,
+        CUSTOMER_SERVICE,
+        JSON.stringify({
+          _id: "63bd259b0976fb4c61755802",
+          name: "Olive Oil",
+          desc: "great Quality of Oil",
+          type: "oils",
+          unit: 1,
+          price: 400,
+          available: true,
+          suplier: "Golden seed firming",
+          banner: "http://codergogoi.com/youtube/images/oliveoil.jpg",
+          __v: 0
+        })
+      )
       return res.status(200).json(data.data)
     } catch (err) {}
   })
@@ -85,14 +103,15 @@ module.exports = (app) => {
         { productId: productId },
         "REMOVE_FROM_WISHLIST"
       )
-      PublishCustomerEvent(data)
+      // PublishCustomerEvent(data)
+      PublishMessage(channel, CUSTOMER_SERVICE, JSON.stringify(data))
       return res.status(200).json(data.data.product)
     } catch (err) {
       next(err)
     }
   })
 
-  app.put("/cart", UserAuth, async (req, res, next) => {
+  app.put("/cart", async (req, res, next) => {
     const { _id, qty } = req.body
 
     try {
@@ -102,8 +121,10 @@ module.exports = (app) => {
         { productId: req.body._id, qty: req.body.qty },
         "ADD_TO_CART"
       )
-      PublishCustomerEvent(data)
-      PublishShoppingEvent(data)
+      // PublishCustomerEvent(data)
+      PublishMessage(channel, CUSTOMER_SERVICE, JSON.stringify(data))
+      // PublishShoppingEvent(data)
+      PublishMessage(channel, SHOPPING_SERVICE, JSON.stringify(data))
       return res.status(200).json({
         product: data.data.product
       })

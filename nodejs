@@ -1,0 +1,8 @@
+Notes:
+Setup Rabbit MQ
+
+1. npm i amqplib
+
+## Rabbit Mq
+
+- once you install rabbitmq locally you can start rabbit mq server and can get access with localhost:15672
